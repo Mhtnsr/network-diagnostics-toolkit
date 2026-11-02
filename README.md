@@ -1,52 +1,41 @@
-# Network Diagnostics Toolkit
+# Single-host network diagnostics
 
-Single-host DNS, ping, route, and TCP diagnostics with structured JSON reports.
+A Python utility for gathering a consistent network troubleshooting report for one explicit, authorized host.
 
-**Owner:** [Mahamat Nassour Ahmat](https://github.com/Mhtnsr) · IT Support Specialist → Systems Administrator
+## Checks
 
-## Problem
+| Check | Default | What a result establishes |
+| --- | --- | --- |
+| OS DNS resolver | On | Whether the supplied name resolves through this machine's resolver |
+| TCP connection | `--probe` | Whether a connection can be established to a selected port |
+| Ping | `--ping` | Observed ICMP response behavior; lack of response alone does not prove an outage |
+| Route trace | `--route` | A bounded view of responding hops; not a complete topology |
 
-Ad hoc network checks are difficult to compare and hand off.
+There is no network-range input or discovery scan. TCP input is limited to eight ports. The same host and port validation runs for CLI and imported-function use.
 
-## Solution
+## Use
 
-Collect DNS results for one explicit host; optionally run ping, bounded route tracing, and up to eight TCP port checks. No network ranges or discovery scanning. JSON supports consistent incident notes.
-
-## Usage
-
-Run from the repository root. Use an isolated, authorized environment and inspect source before execution.
+Python 3.10+ with the standard library. Ping/route checks also require the platform's command-line utilities. From the repository root:
 
 ```bash
 python scripts/net_report.py --host localhost
-# Opt-in checks on your own local endpoint only:
-python scripts/net_report.py --host localhost --ports 443 --probe --ping --route
+python scripts/net_report.py --host localhost --ports 443 --probe
+python scripts/net_report.py --host localhost --ping --route
 python -m unittest discover -s tests -v
 ```
 
-## Validation and limits
+Output is JSON on stdout. There is no automatic upload. Review reports locally: DNS answers and route output can reveal private infrastructure.
 
-Mocked tests and a localhost-only smoke run validate selected paths. Windows/Linux command availability varies; DNS resolution has OS-controlled timeout behavior. TCP success is not an application health check. Reports may contain addresses and routes: keep them private until sanitized.
+## Implementation decisions
 
-## Screenshots and evidence
+- No shell interpolation: subprocess commands receive argument lists.
+- TCP connects have a three-second timeout; ping and route commands have process deadlines.
+- Name resolution uses `getaddrinfo`; its wait time is controlled by the OS resolver and is not bounded by the TCP timeout.
+- Missing utilities and command timeouts have explicit statuses.
+- A completed command may have a non-zero return code. A TCP connection does not verify TLS, authentication, or application health.
 
-[Evidence checklist](evidence/README.md). Placeholder: add a sanitized capture of the actual execution or lab result here after validation. No screenshots or outcomes are fabricated.
+## Validation and remaining work
 
-<!-- Example after creating the file: ![Sanitized lab result](evidence/lab-result.png) -->
+[Validation record](docs/validation.md): fixture/mocked tests and a localhost-only smoke run. Route behavior across Windows/Linux and real network fault diagnosis are not yet lab-validated. No customer or employer network was tested.
 
-## Repository map
-
-Source belongs in `scripts/`, reproducible checks in `tests/`, synthetic inputs in `examples/`, design notes in `docs/`, reusable records in `templates/`, and sanitized proof in `evidence/`. Only directories relevant to this project are created.
-
-## Next steps
-
-- Capture a reproducible lab run with expected versus observed behavior.
-- Document failure cases and recovery or escalation.
-- Update validation status only after recording actual results.
-
-## Security
-
-See [SECURITY.md](SECURITY.md). No company data, credentials, internal topology, or live ticket details belong here.
-
-## License
-
-[MIT](LICENSE). A personal learning project; not affiliated with or endorsed by USEReady, Microsoft, CompTIA, or other vendors.
+[Evidence index](evidence/README.md) · [MIT license](LICENSE) · [Security](SECURITY.md)

@@ -35,12 +35,15 @@ def command_check(tool, args, timeout):
     except OSError: return {'status':'unavailable'}
 
 def collect(host, ports, probe=False, ping=False, route=False):
+    # Enforce the same limits for callers importing this function as for the CLI.
+    host = validate_host(host)
+    ports = parse_ports(','.join(str(port) for port in ports))
     report={'schema_version':1,'timestamp_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),
             'host':host,'dns':{'status':'unavailable'},'tcp':[],'ping':{'status':'not-requested'},'route':{'status':'not-requested'}}
     # OS resolver timeout behavior is platform-specific; getaddrinfo has no portable timeout.
     try:
         addresses=sorted({item[4][0] for item in socket.getaddrinfo(host, None, type=socket.SOCK_STREAM)})
-        report['dns']={'status':'resolved','addresses':addresses}
+        report['dns']={'status':'resolved','addresses':addresses} if addresses else {'status':'failed'}
     except OSError: report['dns']={'status':'failed'}
     if probe:
         for port in ports:
