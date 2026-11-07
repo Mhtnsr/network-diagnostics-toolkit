@@ -39,3 +39,7 @@ Output is JSON on stdout. There is no automatic upload. Review reports locally: 
 [Validation record](docs/validation.md): fixture/mocked tests and a localhost-only smoke run. Route behavior across Windows/Linux and real network fault diagnosis are not yet lab-validated. No customer or employer network was tested.
 
 [Evidence index](evidence/README.md) · [MIT license](LICENSE) · [Security](SECURITY.md)
+
+## Automated checks
+
+[CI configuration and limits](docs/ci.md) · [Latest workflow runs](https://github.com/Mhtnsr/network-diagnostics-toolkit/actions/workflows/checks.yml)
